@@ -146,7 +146,8 @@
   - [x] 创建项目骨架目录结构（backend-go/backend-cpp/frontend/deploy/config）
   - [x] 新增设计文档：`asr-gateway.md`, `cti-controller.md`, `dialer-core.md`, `frontend-spec.md`, `security-compliance.md`, `database-schema.md`
   - [x] 生成 Helm Chart 骨架（asr-gateway/cti-controller/freeswitch）
-  - [ ] 下一步：实现 CTI Controller ESL 适配与 ASR 回调 API，编写单元与集成测试
+  - [x] 实现后端初版：Go 模块、CTI `/asr/decision` 接口、ASR Gateway `/stream` 与 `/config/reload`、短语匹配库与单元测试
+  - [ ] 下一步：实现 ESL 适配（连接池/事件订阅/uuid_audio_fork）、ASR Gateway→CTI 的 HTTP 回调、部署 FunASR 接入与影子模式、SIPp 集成测试
 
 ---
 
