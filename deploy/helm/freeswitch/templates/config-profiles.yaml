@@ -25,3 +25,17 @@ data:
         <param name="accept-blind-reg" value="false"/>
       </settings>
     </profile>
+  external.xml: |
+    <profile name="external">
+      <settings>
+        <param name="sip-ip" value="$${local_ip_v4}"/>
+        <param name="rtp-ip" value="$${local_ip_v4}"/>
+        <param name="ext-sip-ip" value="auto-nat"/>
+        <param name="ext-rtp-ip" value="auto-nat"/>
+        <param name="inbound-proxy-media" value="true"/>
+        <param name="disable-transcoding" value="true"/>
+        <param name="dtmf-type" value="rfc2833"/>
+        <param name="rtp-timeout-sec" value="300"/>
+        <param name="sip-port" value="5080"/>
+      </settings>
+    </profile>

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -71,9 +72,8 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 	mode := os.Getenv("ASR_MODE") // shadow | force
 	if mode == "" { mode = "shadow" }
 
-	fasrURL := os.Getenv("FUNASR_WS_URL")
-	var fasr *fa.Client
-	var transcriptHandler = func(text string) {
+	agg := strings.Builder{}
+	tryDecide := func(text string) {
 		phr := s.phrases.Load().(*asr.Phrases)
 		if cls, ok := phr.Match(text); ok {
 			el := time.Since(start).Milliseconds()
@@ -82,9 +82,19 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 			dec := Decision{UUID: r.URL.Query().Get("uuid"), Result: cls, Confidence: 0.9, LatencyMs: int(el), Transcript: text, Mode: "early"}
 			if mode == "force" {
 				s.callbackCTI(dec)
-			} else {
-				// shadow: 暂不回调，只记指标
 			}
+		}
+	}
+
+	fasrURL := os.Getenv("FUNASR_WS_URL")
+	var fasr *fa.Client
+	var transcriptHandler = func(text string) {
+		agg.WriteString(text)
+		// strong phrase match triggers immediately
+		tryDecide(text)
+		// or aggregated content over ~1s
+		if time.Since(start) > 1200*time.Millisecond {
+			tryDecide(agg.String())
 		}
 	}
 
@@ -95,20 +105,17 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 		defer func(){ if fasr != nil { fasr.Close() } }()
 	}
 
-	uuid := r.URL.Query().Get("uuid")
+	// uuid used via r.URL.Query().Get("uuid") in decision path
 	for {
 		mt, data, err := c.ReadMessage()
 		if err != nil { if err == io.EOF { return }; log.Printf("ws read: %v", err); return }
 		switch mt {
 		case websocket.TextMessage:
 			text := string(data)
-			phr := s.phrases.Load().(*asr.Phrases)
-			if cls, ok := phr.Match(text); ok {
-				el := time.Since(start).Milliseconds()
-				mDecisions.WithLabelValues(cls).Inc()
-				mLatency.Observe(float64(el))
-				dec := Decision{UUID: uuid, Result: cls, Confidence: 0.99, LatencyMs: int(el), Transcript: text, Mode: "early"}
-				s.callbackCTI(dec)
+			agg.WriteString(text)
+			tryDecide(text)
+			if time.Since(start) > 1200*time.Millisecond {
+				tryDecide(agg.String())
 			}
 		case websocket.BinaryMessage:
 			if fasr != nil {

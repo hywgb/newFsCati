@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<scenario name="183 Early Media">
+  <recv request="INVITE"/>
+  <send>
+    <![CDATA[
+SIP/2.0 183 Session Progress
+[last_Via:]
+[last_From:]
+[last_To:];tag=[call_number]
+[last_Call-ID:]
+[last_CSeq:]
+Contact: <sip:media@test.invalid>
+Content-Type: application/sdp
+Content-Length: [len]
+
+v=0
+o=user1 53655765 2353687637 IN IP4 [local_ip]
+s=183
+c=IN IP4 [local_ip]
+t=0 0
+m=audio [media_port] RTP/AVP 0
+c=IN IP4 [local_ip]
+a=rtpmap:0 PCMU/8000
+    ]]>
+  </send>
+  <nop>
+    <!-- Placeholder: use RTP play with -rtpstream on CLI to send early media audio -->
+  </nop>
+  <pause milliseconds="3000"/>
+  <send>
+    <![CDATA[
+SIP/2.0 486 Busy Here
+[last_Via:]
+[last_From:]
+[last_To:]
+[last_Call-ID:]
+[last_CSeq:]
+Content-Length: 0
+    ]]>
+  </send>
+</scenario>
