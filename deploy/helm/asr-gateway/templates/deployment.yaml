@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: asr-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.metrics.path | quote }}
+        prometheus.io/port: {{ .Values.metrics.port | quote }}
     spec:
       containers:
         - name: asr-gateway
@@ -23,6 +27,10 @@ spec:
               value: {{ .Values.env.PHRASES_PATH | quote }}
             - name: CTI_DECISION_URL
               value: {{ .Values.env.CTI_DECISION_URL | quote }}
+            - name: FUNASR_WS_URL
+              value: {{ .Values.env.FUNASR_WS_URL | quote }}
+            - name: ASR_MODE
+              value: {{ .Values.env.ASR_MODE | quote }}
           readinessProbe:
             httpGet:
               path: /healthz

@@ -28,5 +28,13 @@ spec:
               value: {{ .Values.service.rtp.start | quote }}
             - name: RTP_END_PORT
               value: {{ .Values.service.rtp.end | quote }}
+          volumeMounts:
+            - name: fs-config
+              mountPath: /etc/freeswitch/autoload_configs/xml_curl.conf.xml
+              subPath: xml_curl.conf.xml
           resources:
 {{ toYaml .Values.resources | indent 12 }}
+      volumes:
+        - name: fs-config
+          configMap:
+            name: freeswitch-config

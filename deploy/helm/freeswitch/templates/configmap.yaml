@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freeswitch-config
+data:
+  xml_curl.conf.xml: |
+    <configuration name="xml_curl.conf" description="XML Gateway">
+      <bindings>
+        <binding name="directory">
+          <param name="gateway-url" value="{{ .Values.env.XML_CURL_DIRECTORY_URL }}"/>
+          <param name="cache" value="false"/>
+        </binding>
+        <binding name="dialplan">
+          <param name="gateway-url" value="{{ .Values.env.XML_CURL_DIALPLAN_URL }}"/>
+          <param name="cache" value="false"/>
+        </binding>
+      </bindings>
+    </configuration>

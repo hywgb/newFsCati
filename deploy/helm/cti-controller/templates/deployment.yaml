@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: cti-controller
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: {{ .Values.metrics.path | quote }}
+        prometheus.io/port: {{ .Values.metrics.port | quote }}
     spec:
       containers:
         - name: cti-controller
