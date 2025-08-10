@@ -1,0 +1,27 @@
+image:
+  repository: your-registry/freeswitch
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  sipInternal:
+    port: 5061
+  esl:
+    port: 8021
+  rtp:
+    start: 30000
+    end: 39999
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: "1"
+    memory: 1Gi
+
+persistence:
+  enabled: true
+  size: 50Gi

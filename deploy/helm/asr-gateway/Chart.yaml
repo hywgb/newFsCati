@@ -1,0 +1,5 @@
+apiVersion: v2
+name: asr-gateway
+version: 0.1.0
+description: ASR Gateway for FunASR streaming recognition
+appVersion: "0.1.0"

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cti-controller
+version: 0.1.0
+description: CTI Controller service
+appVersion: "0.1.0"

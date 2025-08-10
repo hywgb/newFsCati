@@ -1,0 +1,5 @@
+apiVersion: v2
+name: freeswitch
+version: 0.1.0
+description: FreeSWITCH media and signaling node
+appVersion: "1.10"
