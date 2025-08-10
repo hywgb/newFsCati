@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cti-controller
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: cti-controller
+  template:
+    metadata:
+      labels:
+        app: cti-controller
+    spec:
+      containers:
+        - name: cti-controller
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ESL_HOST
+              value: {{ .Values.env.ESL_HOST | quote }}
+            - name: ESL_PORT
+              value: {{ .Values.env.ESL_PORT | quote }}
+            - name: ESL_PASSWORD
+              value: {{ .Values.env.ESL_PASSWORD | quote }}
+            - name: ASR_GATEWAY_WS
+              value: {{ .Values.env.ASR_GATEWAY_WS | quote }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
