@@ -1,6 +1,7 @@
 package asr_gateway
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -62,7 +63,20 @@ func (s *Server) HandleReload(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("reloaded"))
 }
 
-// HandleStream accepts WS but does not process PCM here; placeholder for FunASR integration.
+func (s *Server) callbackCTI(dec Decision) {
+	url := os.Getenv("CTI_DECISION_URL")
+	if url == "" { return }
+	b, _ := json.Marshal(dec)
+	resp, err := http.Post(url, "application/json", bytes.NewReader(b))
+	if err != nil {
+		log.Printf("post cti: %v", err)
+		return
+	}
+	io.Copy(io.Discard, resp.Body)
+	resp.Body.Close()
+}
+
+// HandleStream accepts WS; for initial phase, treat text frames as transcript.
 func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -83,15 +97,13 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 			log.Printf("ws read: %v", err)
 			return
 		}
-		// Placeholder: accept text message as transcript for initial testing
 		if mt == websocket.TextMessage {
 			text := string(data)
 			phr := s.phrases.Load().(*asr.Phrases)
 			if cls, ok := phr.Match(text); ok {
 				dec := Decision{UUID: uuid, Result: cls, Confidence: 0.99, LatencyMs: 200, Transcript: text, Mode: "early"}
-				b, _ := json.Marshal(dec)
-				// Echo back as decision frame (in production, POST to CTI)
-				_ = conn.WriteMessage(websocket.TextMessage, b)
+				// Send to CTI callback
+				s.callbackCTI(dec)
 			}
 		}
 	}

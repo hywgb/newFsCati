@@ -2,7 +2,6 @@ package cticontroller
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -17,15 +16,16 @@ type AsrDecision struct {
 	Fallback    bool    `json:"fallback"`
 }
 
-func HandleAsrDecision(w http.ResponseWriter, r *http.Request) {
+func (s *Server) HandleAsrDecision(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	var d AsrDecision
 	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	// TODO: write to DB and send uuid_kill via ESL client (placeholder log)
-	log.Printf("ASR Decision: uuid=%s result=%s conf=%.2f latency=%dms", d.UUID, d.Result, d.Confidence, d.LatencyMs)
+	if d.Confidence >= 0.75 {
+		s.KillByDecision(d.UUID)
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("ok"))
 }
