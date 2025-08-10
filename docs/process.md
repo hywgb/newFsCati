@@ -13,9 +13,7 @@
 ### 4.6 数据与合规
 - [x] mod_xml_curl 规范文档 `docs/mod_xml_curl_spec.md`
 ## 5. 执行记录（持续更新）
-- 2025-08-10（续2）
-  - [x] FreeSWITCH Helm 模板（Deployment/Service/ConfigMap）并挂载 xml_curl
-  - [x] asr-gateway/cti-controller 增加 Prometheus 抓取注解
-  - [x] 创建 SIPp 测试脚本目录 `tests/sipp`
-  - [x] ASR Gateway 接入 FunASR 转写回调（影子/强制模式），完善指标
-  - [ ] 下一步：生成 Grafana 仪表盘与 Prometheus 抓取配置、SIPp 场景脚本与CI流水线、FS镜像参数化及示例配置
+- 2025-08-10（续3）
+  - [x] FreeSWITCH ConfigMap：`modules.conf.xml` 启用所需模块、`internal.xml` 配置 TLS/SRTP/NAT、`xml_curl.conf.xml` 绑定 config-service
+  - [x] 部署挂载上述 ConfigMap 到容器路径
+  - [ ] 下一步：完善 external profile、SBC前置对接配置、证书与密钥挂载、安全加固、性能参数（RTP队列/内核调优）

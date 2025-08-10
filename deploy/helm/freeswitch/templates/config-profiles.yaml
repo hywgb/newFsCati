@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: freeswitch-profiles
+data:
+  internal.xml: |
+    <profile name="internal">
+      <aliases/>
+      <domains>
+        <domain name="all" parse="true"/>
+      </domains>
+      <settings>
+        <param name="sip-ip" value="$${local_ip_v4}"/>
+        <param name="rtp-ip" value="$${local_ip_v4}"/>
+        <param name="ext-sip-ip" value="auto-nat"/>
+        <param name="ext-rtp-ip" value="auto-nat"/>
+        <param name="inbound-codec-prefs" value="OPUS,PCMU,PCMA"/>
+        <param name="outbound-codec-prefs" value="PCMU,PCMA,OPUS"/>
+        <param name="tls" value="true"/>
+        <param name="tls-only" value="true"/>
+        <param name="media-encryption" value="srtp"/>
+        <param name="dtmf-type" value="rfc2833"/>
+        <param name="inbound-late-negotiation" value="true"/>
+        <param name="auth-calls" value="true"/>
+        <param name="accept-blind-reg" value="false"/>
+      </settings>
+    </profile>

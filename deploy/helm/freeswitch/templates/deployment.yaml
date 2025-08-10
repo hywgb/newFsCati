@@ -32,9 +32,21 @@ spec:
             - name: fs-config
               mountPath: /etc/freeswitch/autoload_configs/xml_curl.conf.xml
               subPath: xml_curl.conf.xml
+            - name: fs-modules
+              mountPath: /etc/freeswitch/autoload_configs/modules.conf.xml
+              subPath: modules.conf.xml
+            - name: fs-profiles
+              mountPath: /etc/freeswitch/sip_profiles/internal.xml
+              subPath: internal.xml
           resources:
 {{ toYaml .Values.resources | indent 12 }}
       volumes:
         - name: fs-config
           configMap:
             name: freeswitch-config
+        - name: fs-modules
+          configMap:
+            name: freeswitch-modules
+        - name: fs-profiles
+          configMap:
+            name: freeswitch-profiles
