@@ -22,6 +22,8 @@ env:
   THRESHOLD: "0.75"
   PROOF_SECONDS: "10"
   CTI_DECISION_URL: http://cti-controller:8080/asr/decision
+  FUNASR_WS_URL: ws://funasr:10095/ws
+  ASR_MODE: shadow
 
 ingress:
   enabled: false

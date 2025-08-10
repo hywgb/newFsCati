@@ -68,11 +68,29 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 	mActiveSessions.Inc()
 	defer mActiveSessions.Dec()
 
-	// Shadow mode FunASR forwarding if configured
+	mode := os.Getenv("ASR_MODE") // shadow | force
+	if mode == "" { mode = "shadow" }
+
 	fasrURL := os.Getenv("FUNASR_WS_URL")
 	var fasr *fa.Client
+	var transcriptHandler = func(text string) {
+		phr := s.phrases.Load().(*asr.Phrases)
+		if cls, ok := phr.Match(text); ok {
+			el := time.Since(start).Milliseconds()
+			mDecisions.WithLabelValues(cls).Inc()
+			mLatency.Observe(float64(el))
+			dec := Decision{UUID: r.URL.Query().Get("uuid"), Result: cls, Confidence: 0.9, LatencyMs: int(el), Transcript: text, Mode: "early"}
+			if mode == "force" {
+				s.callbackCTI(dec)
+			} else {
+				// shadow: 暂不回调，只记指标
+			}
+		}
+	}
+
 	if fasrURL != "" {
 		fasr = fa.New(fasrURL)
+		fasr.OnTranscript = transcriptHandler
 		if err := fasr.Connect(); err != nil { log.Printf("funasr connect: %v", err) } else { go fasr.ReadLoop() }
 		defer func(){ if fasr != nil { fasr.Close() } }()
 	}

@@ -1,6 +1,7 @@
 package funasr
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,8 +11,14 @@ import (
 )
 
 type Client struct {
-	url   string
-	conn  *websocket.Conn
+	url         string
+	conn        *websocket.Conn
+	OnTranscript func(string)
+}
+
+type asrMsg struct {
+	Text   string `json:"text"`
+	Result string `json:"result"`
 }
 
 func New(wsURL string) *Client { return &Client{url: wsURL} }
@@ -37,11 +44,21 @@ func (c *Client) Close() {
 	}
 }
 
-// Note: Parsing transcripts is model-specific; gateway remains transport-only here.
 func (c *Client) ReadLoop() {
 	if c.conn == nil { return }
 	for {
-		_, _, err := c.conn.ReadMessage()
+		t, data, err := c.conn.ReadMessage()
 		if err != nil { log.Printf("funasr read: %v", err); return }
+		if t == websocket.TextMessage {
+			msg := string(data)
+			// try json
+			var m asrMsg
+			if json.Unmarshal(data, &m) == nil {
+				if m.Text != "" && c.OnTranscript != nil { c.OnTranscript(m.Text) }
+				if m.Result != "" && c.OnTranscript != nil { c.OnTranscript(m.Result) }
+				continue
+			}
+			if c.OnTranscript != nil { c.OnTranscript(msg) }
+		}
 	}
 }
