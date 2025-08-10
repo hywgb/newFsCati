@@ -1,0 +1,26 @@
+image:
+  repository: your-registry/asr-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 10000
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: "500m"
+    memory: 512Mi
+
+env:
+  PHRASES_PATH: /config/phrases.yml
+  THRESHOLD: "0.75"
+  PROOF_SECONDS: "10"
+
+ingress:
+  enabled: false

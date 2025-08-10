@@ -1,0 +1,20 @@
+image:
+  repository: your-registry/cti-controller
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+env:
+  ESL_HOST: freeswitch
+  ESL_PORT: "8021"
+  ESL_PASSWORD: ClueCon
+  ASR_CALLBACK: http://asr-gateway:10000
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: "500m"
+    memory: 512Mi
