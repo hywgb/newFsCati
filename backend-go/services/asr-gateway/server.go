@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/cati/system/internal/asr"
@@ -59,6 +60,7 @@ func (s *Server) callbackCTI(dec Decision) {
 }
 
 func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil { log.Printf("ws upgrade: %v", err); return }
 	defer c.Close()
@@ -70,8 +72,10 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 			text := string(data)
 			phr := s.phrases.Load().(*asr.Phrases)
 			if cls, ok := phr.Match(text); ok {
+				el := time.Since(start).Milliseconds()
 				mDecisions.WithLabelValues(cls).Inc()
-				dec := Decision{UUID: uuid, Result: cls, Confidence: 0.99, LatencyMs: 200, Transcript: text, Mode: "early"}
+				mLatency.Observe(float64(el))
+				dec := Decision{UUID: uuid, Result: cls, Confidence: 0.99, LatencyMs: int(el), Transcript: text, Mode: "early"}
 				s.callbackCTI(dec)
 			}
 		}

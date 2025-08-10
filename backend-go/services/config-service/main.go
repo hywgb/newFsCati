@@ -48,5 +48,6 @@ func main() {
 	addr := ":9000"
 	if v := os.Getenv("CFG_HTTP_ADDR"); v != "" { addr = v }
 	http.HandleFunc("/directory", handleDirectory)
+	http.HandleFunc("/dialplan", handleDialplan)
 	http.ListenAndServe(addr, nil)
 }

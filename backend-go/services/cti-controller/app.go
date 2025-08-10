@@ -7,7 +7,15 @@ import (
 	"time"
 
 	cti "github.com/cati/system/internal/cti"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var progressMediaTotal = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "cti_progress_media_total",
+	Help: "Total CHANNEL_PROGRESS_MEDIA events",
+})
+
+func init() { prometheus.MustRegister(progressMediaTotal) }
 
 type Server struct {
 	esl   *cti.Client
@@ -32,6 +40,7 @@ func (s *Server) StartESL() {
 	h := func(ev cti.Event) {
 		if ev.Headers["Content-Type"] == "text/event-plain" {
 			if ev.Headers["Event-Name"] == "CHANNEL_PROGRESS_MEDIA" {
+				progressMediaTotal.Inc()
 				uuid := ev.Headers["Unique-ID"]
 				s.handleProgressMedia(uuid)
 			}
