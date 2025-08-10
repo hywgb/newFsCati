@@ -25,3 +25,7 @@ resources:
 persistence:
   enabled: true
   size: 50Gi
+
+env:
+  XML_CURL_DIRECTORY_URL: http://config-service:9000/directory
+  XML_CURL_DIALPLAN_URL: http://config-service:9000/dialplan

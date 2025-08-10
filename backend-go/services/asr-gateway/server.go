@@ -12,8 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/cati/system/internal/asr"
+	fa "github.com/cati/system/internal/funasr"
+	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }}
@@ -64,11 +65,24 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil { log.Printf("ws upgrade: %v", err); return }
 	defer c.Close()
+	mActiveSessions.Inc()
+	defer mActiveSessions.Dec()
+
+	// Shadow mode FunASR forwarding if configured
+	fasrURL := os.Getenv("FUNASR_WS_URL")
+	var fasr *fa.Client
+	if fasrURL != "" {
+		fasr = fa.New(fasrURL)
+		if err := fasr.Connect(); err != nil { log.Printf("funasr connect: %v", err) } else { go fasr.ReadLoop() }
+		defer func(){ if fasr != nil { fasr.Close() } }()
+	}
+
 	uuid := r.URL.Query().Get("uuid")
 	for {
 		mt, data, err := c.ReadMessage()
 		if err != nil { if err == io.EOF { return }; log.Printf("ws read: %v", err); return }
-		if mt == websocket.TextMessage {
+		switch mt {
+		case websocket.TextMessage:
 			text := string(data)
 			phr := s.phrases.Load().(*asr.Phrases)
 			if cls, ok := phr.Match(text); ok {
@@ -77,6 +91,11 @@ func (s *Server) HandleStream(w http.ResponseWriter, r *http.Request) {
 				mLatency.Observe(float64(el))
 				dec := Decision{UUID: uuid, Result: cls, Confidence: 0.99, LatencyMs: int(el), Transcript: text, Mode: "early"}
 				s.callbackCTI(dec)
+			}
+		case websocket.BinaryMessage:
+			if fasr != nil {
+				_ = fasr.SendPCM(data)
+				mForwardedFrames.Inc()
 			}
 		}
 	}

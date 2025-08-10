@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freeswitch
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: freeswitch
+  template:
+    metadata:
+      labels:
+        app: freeswitch
+    spec:
+      containers:
+        - name: freeswitch
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.sipInternal.port }}
+            - containerPort: {{ .Values.service.esl.port }}
+          env:
+            - name: XML_CURL_DIRECTORY_URL
+              value: {{ .Values.env.XML_CURL_DIRECTORY_URL | quote }}
+            - name: XML_CURL_DIALPLAN_URL
+              value: {{ .Values.env.XML_CURL_DIALPLAN_URL | quote }}
+            - name: RTP_START_PORT
+              value: {{ .Values.service.rtp.start | quote }}
+            - name: RTP_END_PORT
+              value: {{ .Values.service.rtp.end | quote }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
