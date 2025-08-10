@@ -24,6 +24,9 @@ func (s *Server) HandleAsrDecision(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	mAsrCallbacks.WithLabelValues(d.Result).Inc()
+	if s.store != nil {
+		_ = s.store.SaveAsrDecision(d)
+	}
 	if d.Confidence >= 0.75 {
 		s.KillByDecision(d.UUID)
 	}

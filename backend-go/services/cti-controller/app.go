@@ -20,11 +20,14 @@ func init() { prometheus.MustRegister(progressMediaTotal) }
 type Server struct {
 	esl   *cti.Client
 	asrGW string // ws base url for audio_fork
+	store *Store
 }
 
 func NewServer() *Server {
 	s := &Server{}
 	s.asrGW = os.Getenv("ASR_GATEWAY_WS") // e.g., wss://asr-gateway:10000/stream
+	st, err := NewStoreFromEnv()
+	if err != nil { log.Printf("pg init error: %v", err) } else { s.store = st }
 	return s
 }
 
